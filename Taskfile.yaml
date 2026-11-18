@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: "3"
+
+tasks:
+  add-repo:
+    vars:
+      REPO: "{{index .CLI_ARGS_LIST 0}}"
+    cmd: gh repo edit willsawyerrrr/{{.REPO}} --add-topic factory
+    desc: Adds a repo to the factory
+
+  sync:
+    cmd: ./scripts/sync
+    desc: Sync factory repos
