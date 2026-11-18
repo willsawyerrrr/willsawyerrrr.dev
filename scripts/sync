@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Clones each `factory`-topic repo of willsawyerrrr as `<name>/.bare` with a
+# default-branch worktree, or fetches and fast-forwards it if already present.
+set -euo pipefail
+
+root=$(cd "$(dirname "$0")/.." && pwd)
+
+# Sets the remote-tracking refspec and `git wt` settings a bare clone lacks.
+configure() {
+  git -C "$1" config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'
+  git -C "$1" config wt.basedir ..
+  git -C "$1" config push.autosetupremote true
+}
+
+while read -r name url branch <&3; do
+  dir="$root/$name"
+  if [ ! -d "$dir/.bare" ]; then
+    echo "==> clone $name"
+    git clone --bare --quiet "$url" "$dir/.bare"
+    echo "gitdir: ./.bare" >"$dir/.git"
+    configure "$dir"
+    git -C "$dir" fetch --quiet origin
+    git -C "$dir" worktree add --quiet "$dir/$branch" "$branch"
+    git -C "$dir" branch --quiet --set-upstream-to="origin/$branch" "$branch"
+  else
+    echo "==> fetch $name"
+    configure "$dir"
+    git -C "$dir" fetch --quiet --all --prune
+    git -C "$dir/$branch" merge --quiet --ff-only "origin/$branch" ||
+      echo "    skipped fast-forward of $name/$branch"
+  fi
+done 3< <(gh repo list willsawyerrrr --topic factory --no-archived --limit 1000 \
+  --json name,sshUrl,defaultBranchRef \
+  --jq '.[] | "\(.name) \(.sshUrl) \(.defaultBranchRef.name)"')

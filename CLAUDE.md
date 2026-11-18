@@ -9,6 +9,13 @@ branch); `main` stays checked out in `main/`. Every piece of work happens in
 its own dedicated worktree named after its branch, keeping parallel work from
 colliding on git state.
 
+This home repo ignores every top-level directory except its own (`scripts/`),
+so project repos live inside it untracked, with no submodules. Every
+non-archived `willsawyerrrr` repo with the `factory` topic belongs here:
+`scripts/sync` clones missing ones in this layout and fetches and
+fast-forwards the rest. To add a project, run
+`gh repo edit willsawyerrrr/<repo> --add-topic factory`, then `scripts/sync`.
+
 ## Workflow
 
 - Feature work on branches → PRs; keep `main` releasable.
